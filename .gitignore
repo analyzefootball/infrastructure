@@ -1,6 +1,13 @@
-# Compiled files
-*.tfstate
-*.tfstate.backup
-
 # Module directory
 .terraform/
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# secret/key/password files
+secret.tfvars
+secret.auto.tfvars
+
+#temporary plan file
+ops.plan
