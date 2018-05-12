@@ -11,7 +11,7 @@ resource "aws_key_pair" "mainkey" {
 
 resource "aws_instance" "Developer-Tools" {
   ami           = "ami-b41377cc"                      //container os comes with docker
-  instance_type = "t2.micro"
+  instance_type = "t2.xlarge"
   key_name      = "${aws_key_pair.mainkey.key_name }"
 
   vpc_security_group_ids = ["${var.SECURITY_GROUP_IDS}"]

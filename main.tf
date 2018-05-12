@@ -114,13 +114,31 @@ resource "aws_security_group" "Allow-HTTPS" {
   }
 }
 
+resource "aws_security_group" "Allow-HTTP8080" {
+  name        = "HTTPS"
+  description = "Allow all HTTPS traffic"
+  vpc_id      = "${aws_default_vpc.main.id}"
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Name        = "${var.environment_name}-https-security-group"
+    Terraform   = "true"
+    Environment = "${var.environment_name}"
+  }
+}
+
 module "jenkins" {
   source  = "./jenkins"
   SSH_KEY = "${var.SSH_KEY}"
 
   SECURITY_GROUP_IDS = ["${aws_default_security_group.default-security.id}",
     "${aws_security_group.Allow-SSH.id}",
-    "${aws_security_group.Allow-HTTP.id}",
-    "${aws_security_group.Allow-HTTPS.id}",
+    "${aws_security_group.Allow-HTTP8080.id}",
   ]
 }
