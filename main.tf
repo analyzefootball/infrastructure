@@ -16,6 +16,8 @@ variable "AWS_ACCESS_KEY" {}
 
 variable "AWS_SECRET_KEY" {}
 
+variable "SSH_KEY" {}
+
 /**
  * Using Amazon aws as provider
  */
@@ -46,6 +48,20 @@ resource "aws_default_vpc_dhcp_options" "default" {
 
 resource "aws_default_security_group" "default-security" {
   vpc_id = "${aws_default_vpc.main.id}"
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   tags {
     Name        = "${var.environment_name}-default-security-group"
@@ -94,6 +110,7 @@ resource "aws_default_subnet" "west3" {
   }
 }
 
+/*
 resource "aws_default_network_acl" "default-acl" {
   default_network_acl_id = "${aws_default_vpc.main.default_network_acl_id }"
 
@@ -147,4 +164,10 @@ resource "aws_default_network_acl" "default-acl" {
     Terraform   = "true"
     Environment = "${var.environment_name}"
   }
+}
+*/
+
+module "jenkins" {
+  source  = "./jenkins"
+  SSH_KEY = "${var.SSH_KEY}"
 }
