@@ -115,7 +115,7 @@ resource "aws_security_group" "Allow-HTTPS" {
 }
 
 resource "aws_security_group" "Allow-HTTP8080" {
-  name        = "HTTPS"
+  name        = "HTTP8080"
   description = "Allow all HTTPS traffic"
   vpc_id      = "${aws_default_vpc.main.id}"
 

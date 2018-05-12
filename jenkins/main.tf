@@ -16,6 +16,7 @@ resource "aws_instance" "Developer-Tools" {
 
   vpc_security_group_ids = ["${var.SECURITY_GROUP_IDS}"]
 
+  /*this shit is not working
   provisioner "file" {
     source      = "setup-jenkins.sh"
     destination = "./setup-jenkins.sh"
@@ -33,7 +34,7 @@ resource "aws_instance" "Developer-Tools" {
       "chmod +x ./setup-jenkins.sh",
       "./setup-jenkins.sh",
     ]
-  }
+  }*/
 
   tags {
     Name      = "Developer-Tools"
