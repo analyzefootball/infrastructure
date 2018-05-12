@@ -40,21 +40,8 @@ resource "aws_default_vpc" "main" {
   }
 }
 
-resource "aws_default_vpc_dhcp_options" "default" {
-  tags {
-    Name = "Global DHCP Option Set"
-  }
-}
-
 resource "aws_default_security_group" "default-security" {
   vpc_id = "${aws_default_vpc.main.id}"
-
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   egress {
     from_port   = 0
@@ -70,104 +57,70 @@ resource "aws_default_security_group" "default-security" {
   }
 }
 
-resource "aws_default_route_table" "default-route-table" {
-  default_route_table_id = "${aws_default_vpc.main.main_route_table_id }"
-
-  tags {
-    Name        = "${var.environment_name}-default-route-table"
-    Terraform   = "true"
-    Environment = "${var.environment_name}"
-  }
-}
-
-resource "aws_default_subnet" "west1" {
-  availability_zone = "us-west-2a"
-
-  tags {
-    Name        = "${var.environment_name}-west-2a"
-    Terraform   = "true"
-    Environment = "${var.environment_name}"
-  }
-}
-
-resource "aws_default_subnet" "west2" {
-  availability_zone = "us-west-2b"
-
-  tags {
-    Name        = "${var.environment_name}-west-2b"
-    Terraform   = "true"
-    Environment = "${var.environment_name}"
-  }
-}
-
-resource "aws_default_subnet" "west3" {
-  availability_zone = "us-west-2c"
-
-  tags {
-    Name        = "${var.environment_name}-west-2c"
-    Terraform   = "true"
-    Environment = "${var.environment_name}"
-  }
-}
-
-/*
-resource "aws_default_network_acl" "default-acl" {
-  default_network_acl_id = "${aws_default_vpc.main.default_network_acl_id }"
+resource "aws_security_group" "Allow-SSH" {
+  name        = "SSH"
+  description = "Allow all ssh traffic"
+  vpc_id      = "${aws_default_vpc.main.id}"
 
   ingress {
-    protocol   = "tcp"
-    rule_no    = 100
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 22
-    to_port    = 22
-  }
-
-  ingress {
-    protocol   = "tcp"
-    rule_no    = 200
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 80
-    to_port    = 80
-  }
-
-  ingress {
-    protocol   = "tcp"
-    rule_no    = 300
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 8080
-    to_port    = 8080
-  }
-
-  ingress {
-    protocol   = "tcp"
-    rule_no    = 400
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 443
-    to_port    = 443
-  }
-
-  egress {
-    protocol   = -1
-    rule_no    = 100
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 0
-    to_port    = 0
+    from_port   = 22
+    to_port     = 22
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {
-    Name        = "${var.environment_name}-acl"
+    Name        = "${var.environment_name}-ssh-security-group"
     Terraform   = "true"
     Environment = "${var.environment_name}"
   }
 }
-*/
+
+resource "aws_security_group" "Allow-HTTP" {
+  name        = "HTTP"
+  description = "Allow all HTTP traffic"
+  vpc_id      = "${aws_default_vpc.main.id}"
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Name        = "${var.environment_name}-http-security-group"
+    Terraform   = "true"
+    Environment = "${var.environment_name}"
+  }
+}
+
+resource "aws_security_group" "Allow-HTTPS" {
+  name        = "HTTPS"
+  description = "Allow all HTTPS traffic"
+  vpc_id      = "${aws_default_vpc.main.id}"
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Name        = "${var.environment_name}-https-security-group"
+    Terraform   = "true"
+    Environment = "${var.environment_name}"
+  }
+}
 
 module "jenkins" {
   source  = "./jenkins"
   SSH_KEY = "${var.SSH_KEY}"
+
+  SECURITY_GROUP_IDS = ["${aws_default_security_group.default-security.id}",
+    "${aws_security_group.Allow-SSH.id}",
+    "${aws_security_group.Allow-HTTP.id}",
+    "${aws_security_group.Allow-HTTPS.id}",
+  ]
 }
