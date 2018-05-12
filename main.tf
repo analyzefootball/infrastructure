@@ -30,14 +30,9 @@ variable "environment_name" {
   default     = "Main"
 }
 
-module "vpc-setup" {
-  source                           = "terraform-aws-modules/vpc/aws"
-  create_vpc                       = false
-  manage_default_vpc               = true
-  default_vpc_enable_dns_hostnames = true
-  default_vpc_name                 = "${var.environment_name}-VPC"
-
+resource "aws_default_vpc" "main" {
   tags = {
+    Name        = "${var.environment_name}-vpc"
     Terraform   = "true"
     Environment = "${var.environment_name}"
   }
@@ -50,7 +45,7 @@ resource "aws_default_vpc_dhcp_options" "default" {
 }
 
 resource "aws_default_security_group" "default-security" {
-  vpc_id = "${module.vpc-setup.default_vpc_id}"
+  vpc_id = "${aws_default_vpc.main.id}"
 
   tags {
     Name        = "${var.environment_name}-default-security-group"
@@ -60,7 +55,7 @@ resource "aws_default_security_group" "default-security" {
 }
 
 resource "aws_default_route_table" "default-route-table" {
-  default_route_table_id = "${module.vpc-setup.main_route_table_id }"
+  default_route_table_id = "${aws_default_vpc.main.main_route_table_id }"
 
   tags {
     Name        = "${var.environment_name}-default-route-table"
@@ -100,7 +95,7 @@ resource "aws_default_subnet" "west3" {
 }
 
 resource "aws_default_network_acl" "default-acl" {
-  default_network_acl_id = "${module.vpc-setup.default_vpc_default_network_acl_id}"
+  default_network_acl_id = "${aws_default_vpc.main.default_network_acl_id }"
 
   ingress {
     protocol   = "tcp"
